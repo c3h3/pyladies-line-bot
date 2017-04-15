@@ -56,6 +56,12 @@ from todos_friends import (
     add_friend, remove_friend, get_friends_s, get_friends_r
 )
 
+from todos_google_calendar import (
+    get_google_calendar_oauth2_url, save_user_profile, store_credential,
+    get_at_most_5_events_in_next_7_days
+)
+
+
 from flask import Flask, request, abort
 
 app = Flask(__name__)
@@ -87,7 +93,7 @@ def callback():
 def handle_text_message(event):  # default
 
     my_line_id = event.source.sender_id
-    upsert_user_profile(line_bot_api, APP_ID, db, my_line_id)
+    #upsert_user_profile(line_bot_api, APP_ID, db, my_line_id)
 
     # TODO: save the event data into mongodb
     save_event(db, APP_ID, my_line_id, event)
@@ -117,6 +123,20 @@ def handle_text_message(event):  # default
             f_line_id = msg.split()[-1]
             remove_friend(db, APP_ID, my_line_id, f_line_id)
             line_bot_api.reply_message(event.reply_token, TextSendMessage(text="OK"))
+
+        elif msg == "Hi":
+            auth_url = get_google_calendar_oauth2_url()
+            line_bot_api.reply_message(event.reply_token, TextSendMessage(text=auth_url))
+
+        elif msg.startswith("# "):
+            msg = msg.split()[-1]
+            cre, credential_path = store_credential(msg, my_line_id)
+            save_user_profile(line_bot_api, APP_ID, db, my_line_id, cre, credential_path)
+            line_bot_api.reply_message(event.reply_token, TextSendMessage(text=cre.access_token))
+
+        elif msg == "myevents":
+            my_events = get_at_most_5_events_in_next_7_days(my_line_id, APP_ID, db)
+            line_bot_api.reply_message(event.reply_token, TextSendMessage(text=my_events))
 
 
 if __name__ == "__main__":
