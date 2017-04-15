@@ -51,6 +51,11 @@ from todos_hello_mongodb import (
     save_event, save_message
 )
 
+from todos_friends import (
+    upsert_user_profile,
+    add_friend, remove_friend, get_friends_s, get_friends_r
+)
+
 from flask import Flask, request, abort
 
 app = Flask(__name__)
@@ -82,6 +87,7 @@ def callback():
 def handle_text_message(event):  # default
 
     my_line_id = event.source.sender_id
+    upsert_user_profile(line_bot_api, APP_ID, db, my_line_id)
 
     # TODO: save the event data into mongodb
     save_event(db, APP_ID, my_line_id, event)
@@ -92,7 +98,25 @@ def handle_text_message(event):  # default
         save_message(db, APP_ID, my_line_id, event.message)
 
         msg = event.message.text  # message from user
-        line_bot_api.reply_message(event.reply_token, TextSendMessage(text="Your line id is {line_id}. Your message is: {msg}".format(line_id=my_line_id,msg=msg)))
+
+        if msg == "myid":
+            line_bot_api.reply_message(event.reply_token, TextSendMessage(text=my_line_id))
+
+        elif msg == "ls f s":
+            line_bot_api.reply_message(event.reply_token, TextSendMessage(text=str(get_friends_s(db, APP_ID, my_line_id))))
+
+        elif msg == "ls f r":
+            line_bot_api.reply_message(event.reply_token, TextSendMessage(text=str(get_friends_r(db, APP_ID, my_line_id))))
+
+        elif msg.startswith("addf "):
+            f_line_id = msg.split()[-1]
+            add_friend(db, APP_ID, my_line_id, f_line_id)
+            line_bot_api.reply_message(event.reply_token, TextSendMessage(text="OK"))
+
+        elif msg.startswith("rmf "):
+            f_line_id = msg.split()[-1]
+            remove_friend(db, APP_ID, my_line_id, f_line_id)
+            line_bot_api.reply_message(event.reply_token, TextSendMessage(text="OK"))
 
 
 if __name__ == "__main__":
