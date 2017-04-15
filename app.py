@@ -7,6 +7,14 @@ APP_ID  = os.environ.get("APP_ID", "pyladies-201705-group4-demo")
 CHANNEL_SECRET  = os.environ.get("CHANNEL_SECRET", "")
 ChHANNEL_ACCESS_TOKEN = os.environ.get("ChHANNEL_ACCESS_TOKEN", "")
 
+# Variables about mongodb
+MONGODB_HOST = os.environ.get("MONGODB_HOST", "localhost")
+MONGODB_PORT = int(os.environ.get("MONGODB_PORT", 27017))
+MONGODB_USER = os.environ.get("MONGODB_USER", "")
+MONGODB_PWD = os.environ.get("MONGODB_PWD", "")
+DB = os.environ.get("DB", "pyladies-linebots")
+
+
 try:
     from local_settings import *
 except:
@@ -25,10 +33,23 @@ from linebot.models import (
     MessageEvent, TextMessage, TextSendMessage
 )
 
-
 handler = WebhookHandler(CHANNEL_SECRET)
 line_bot_api = LineBotApi(ChHANNEL_ACCESS_TOKEN)
 
+
+from pymongo import MongoClient
+
+mcli = MongoClient(host=MONGODB_HOST, port=MONGODB_PORT)
+db = mcli[DB]
+
+if MONGODB_USER!="":
+    db.authenticate(MONGODB_USER,MONGODB_PWD)
+
+
+
+from todos_hello_mongodb import (
+    save_event, save_message
+)
 
 from flask import Flask, request, abort
 
@@ -59,9 +80,17 @@ def callback():
 
 @handler.add(MessageEvent, message=TextMessage)  # default
 def handle_text_message(event):  # default
+
     my_line_id = event.source.sender_id
 
+    # TODO: save the event data into mongodb
+    save_event(db, APP_ID, my_line_id, event)
+
     if event.type == "message":
+
+        # TODO: save the message data into mongodb
+        save_message(db, APP_ID, my_line_id, event.message)
+
         msg = event.message.text  # message from user
         line_bot_api.reply_message(event.reply_token, TextSendMessage(text="Your line id is {line_id}. Your message is: {msg}".format(line_id=my_line_id,msg=msg)))
 
