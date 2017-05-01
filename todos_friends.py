@@ -15,7 +15,8 @@ def upsert_user_profile(api, app_id, db, user_id):
         hash_data = {}
         for k in ["appId", "userId"]:
             hash_data[k] = data[k]
-
+        
+        data.update(hash_data)
         data["_id"] = hashlib.sha256(json.dumps(hash_data,sort_keys=True).encode("utf-8")).hexdigest()
 
         if db.users.find({"_id": data["_id"]}).count() == 0:
@@ -36,6 +37,8 @@ def add_friend(db, app_id, my_line_id, f_line_id):  # whoIAm->myFirend
         hash_data = {"appId": app_id, "userId": f_line_id}
         data["myFirend"] = hashlib.sha256(json.dumps(hash_data, sort_keys=True).encode("utf-8")).hexdigest()
         data["_id"] = hashlib.sha256(json.dumps(data, sort_keys=True).encode("utf-8")).hexdigest()
+        
+        data.update(hash_data)
         data["createAt"] = datetime.utcnow()
         db.friends.insert(data)
     except Exception as e:
