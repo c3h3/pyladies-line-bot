@@ -132,7 +132,9 @@ def handle_text_message(event):  # default
             msg = msg.split()[-1]
             cre, credential_path = store_credential(msg, my_line_id)
             save_user_profile(line_bot_api, APP_ID, db, my_line_id, cre, credential_path)
-            line_bot_api.reply_message(event.reply_token, TextSendMessage(text=cre.access_token))
+            # line_bot_api.reply_message(event.reply_token, TextSendMessage(text=cre.access_token))
+            line_bot_api.reply_message(event.reply_token, TextSendMessage(text="OK"))
+
 
         elif msg == "myevents":
             my_events = get_at_most_5_events_in_next_7_days(my_line_id, APP_ID, db)
