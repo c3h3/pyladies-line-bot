@@ -61,6 +61,11 @@ from todos_google_calendar import (
     get_at_most_5_events_in_next_7_days
 )
 
+from todos_matching_system import (
+    invite_friend, choose, confirm, help_message
+)
+
+
 
 from flask import Flask, request, abort
 
@@ -139,6 +144,39 @@ def handle_text_message(event):  # default
         elif msg == "myevents":
             my_events = get_at_most_5_events_in_next_7_days(my_line_id, APP_ID, db)
             line_bot_api.reply_message(event.reply_token, TextSendMessage(text=my_events))
+
+        elif msg.startswith("invite"):
+            if len(msg.split()) > 1:
+                invite_message = " ".join(msg.split()[1:])
+            else:
+                invite_message = "for some reason"
+            line_bot_api.reply_message(event.reply_token,
+                                       TextSendMessage(text=invite_friend(db, APP_ID, my_line_id, invite_message)))
+
+        elif msg.startswith("match "):
+            cmd = msg.split()
+            rv = match(db, line_bot_api, APP_ID, my_line_id, cmd[1], cmd[2], cmd[3])
+            title = rv.pop(0)+"\n"
+            rv2 = [rv[i:i+10] for i in range(len(rv))[::10]]
+            rv3 = ["\n".join(i) for i in rv2]
+            line_bot_api.reply_message(event.reply_token, TextSendMessage(text=title+rv3[0]))
+
+            for i in rv3[1:]:
+                line_bot_api.push_message(my_line_id, TextSendMessage(text=i))
+
+
+        elif msg.startswith("choose "):
+            cmd = msg.split()
+            rv = choose(db, line_bot_api, APP_ID, my_line_id, cmd[1])
+            line_bot_api.reply_message(event.reply_token, TextSendMessage(text=rv))
+
+        elif msg.startswith("confirm"):
+            cmd = msg.split()
+            rv = confirm(db, line_bot_api, APP_ID, my_line_id, cmd[1])
+            line_bot_api.reply_message(event.reply_token, TextSendMessage(text=rv))
+
+        else:
+            line_bot_api.reply_message(event.reply_token, TextSendMessage(text=help_message()))
 
 
 if __name__ == "__main__":
