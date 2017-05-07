@@ -105,6 +105,8 @@ def match_free_time(time_range, time_delta, event_data):
     time_range_days = int(time_range.replace("D", ""))
     time_delta_hours = float(time_delta.replace("H", ""))
 
+    assert (time_range_days>0) & (time_delta_hours>0), "time_range_days and time_delta_hours must > 0"
+
     min_time_delta = 0.5
     time_delta_hours = math.ceil(time_delta_hours / min_time_delta) * min_time_delta
     n_sessions = math.ceil(time_delta_hours / min_time_delta)

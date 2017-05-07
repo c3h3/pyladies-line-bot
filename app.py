@@ -62,7 +62,7 @@ from todos_google_calendar import (
 )
 
 from todos_matching_system import (
-    invite_friend, choose, confirm, help_message
+    invite_friend, match, choose, confirm, help_message
 )
 
 
@@ -155,14 +155,21 @@ def handle_text_message(event):  # default
 
         elif msg.startswith("match "):
             cmd = msg.split()
-            rv = match(db, line_bot_api, APP_ID, my_line_id, cmd[1], cmd[2], cmd[3])
-            title = rv.pop(0)+"\n"
-            rv2 = [rv[i:i+10] for i in range(len(rv))[::10]]
-            rv3 = ["\n".join(i) for i in rv2]
-            line_bot_api.reply_message(event.reply_token, TextSendMessage(text=title+rv3[0]))
+            try:
+                rv = match(db, line_bot_api, APP_ID, my_line_id, cmd[1], cmd[2], cmd[3])
+                title = rv.pop(0)+"\n"
+                rv2 = [rv[i:i+10] for i in range(len(rv))[::10]]
+                rv3 = ["\n".join(i) for i in rv2]
+                line_bot_api.reply_message(event.reply_token, TextSendMessage(text=title+rv3[0]))
 
-            for i in rv3[1:]:
-                line_bot_api.push_message(my_line_id, TextSendMessage(text=i))
+                for i in rv3[1:]:
+                    line_bot_api.push_message(my_line_id, TextSendMessage(text=i))
+
+            except Exception as e:
+                print(e)
+                reply_msg = "please enter command as 'match [friend No.] [time_range_days]D [time_delta_hours]H' where time_range_days and time_delta_hours must > 0"
+                line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply_msg))
+
 
 
         elif msg.startswith("choose "):
