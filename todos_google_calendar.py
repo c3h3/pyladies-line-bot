@@ -40,7 +40,9 @@ def store_credential(code, user_id):
     return cre, credential_path
 
 def get_google_calendar_oauth2_url():
-    client_id = "651212683615-s5tkgh08oln2chsu2jtoa5mpac8ub7nu.apps.googleusercontent.com"
+    with open("client_secret.json", "r") as rf:
+        client_secret = json.loads(rf.read())
+    client_id = client_secret["installed"]["client_id"]
     data = {"redirect_uri":"urn:ietf:wg:oauth:2.0:oob",
             "client_id": client_id,
             "scope":"https://www.googleapis.com/auth/calendar",
