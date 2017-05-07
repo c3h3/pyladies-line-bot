@@ -3,6 +3,7 @@ import hashlib, json
     
 def save_event(db, app_id, user_id, event):
     # TODO: create data from event object
+    # print("event = {event}".format(event=event))
     # data = {}
     # hash_data = {"appId": app_id, "userId": user_id}
     # data.update(hash_data)
@@ -14,6 +15,7 @@ def save_event(db, app_id, user_id, event):
 
 def save_message(db, app_id, user_id, message):
     # TODO: create data from message object
+    # print("message = {message}".format(message=message))
     # data = {}
     # hash_data = {"appId": app_id, "userId": user_id}
     # data.update(hash_data)
